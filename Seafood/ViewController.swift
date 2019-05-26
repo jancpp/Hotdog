@@ -13,6 +13,7 @@ import Vision
 class ViewController:  UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var cameraButton: UIBarButtonItem!
     
     let imagePicker = UIImagePickerController()
     
@@ -26,6 +27,9 @@ class ViewController:  UIViewController, UIImagePickerControllerDelegate, UINavi
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        cameraButton.isEnabled = false
+        
         if let userPickedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
             imageView.image = userPickedImage
             
@@ -47,7 +51,22 @@ class ViewController:  UIViewController, UIImagePickerControllerDelegate, UINavi
             guard let results = request.results as? [VNClassificationObservation] else {
                 fatalError("Model failed to process image")
             }
-            print(results)
+            
+            DispatchQueue.main.async {
+                self.cameraButton.isEnabled = true
+            }
+            
+            if let firstResult = results.first {
+                if firstResult.identifier.contains("hotdog") {
+                    self.navigationItem.title = "Hotdog!"
+                    self.navigationController?.navigationBar.barTintColor = UIColor.green
+                    self.navigationController?.navigationBar.isTranslucent = false
+                } else {
+                    self.navigationItem.title = "Not Hotdog!"
+                    self.navigationController?.navigationBar.barTintColor = UIColor.red
+                    self.navigationController?.navigationBar.isTranslucent = false
+                }
+            }
         }
         
         let handler = VNImageRequestHandler(ciImage: image)
